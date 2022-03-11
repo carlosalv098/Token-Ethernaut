@@ -1,18 +1,32 @@
 const { expect } = require("chai");
+const { ethers } = require("hardhat");
 
-describe("Greeter", function () {
-  it("Should return the new greeting once it's changed", async function () {
-    const Greeter = await ethers.getContractFactory("Greeter");
-    const greeter = await Greeter.deploy("Hello, world!");
-    await greeter.deployed();
+let chai = require('chai');
+const { default: BigNumber } = require("bignumber.js");
+let should = require('chai').should();
 
-    expect(await greeter.greet()).to.equal("Hello, world!");
+chai.use(require('chai-bignumber')());
 
-    const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
+describe("Token", function () {
+  it("Hacker should have more tokens after transfer", async function () {
 
-    // wait until the transaction is mined
-    await setGreetingTx.wait();
+    const [deployer, hacker, receiver] = await ethers.getSigners();
 
-    expect(await greeter.greet()).to.equal("Hola, mundo!");
+    const Token = await ethers.getContractFactory("Token", deployer);
+    const token = await Token.deploy(ethers.utils.parseUnits('100000'));
+    await token.deployed();
+    console.log('after transfer');
+    await token.transfer(hacker.address, ethers.utils.parseUnits('20'));
+    console.log('before transfer');
+
+    // expect(await token.balanceOf(hacker.address)).to.equal(ethers.utils.)
+    let balance = ethers.utils.formatEther(await token.balanceOf(hacker.address))
+    console.log(`Hacker balance before hack: ${balance} Tokens`);
+
+    await token.connect(hacker).transfer(receiver.address, ethers.utils.parseUnits('21'));
+
+    balance = ethers.utils.formatEther(await token.balanceOf(hacker.address))
+    console.log(`Hacker balance after hack: ${balance} Tokens`);
+
   });
 });
